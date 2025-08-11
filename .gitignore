@@ -3,3 +3,38 @@ config.json
 .serena/
 .claude/
 CLAUDE.md
+
+# Service runtime files
+claude-kiro-service.log
+claude-kiro-service.pid
+*.log
+*.pid
+
+# System prompt files (user-specific)
+fetch_system_prompt.txt
+input_system_prompt.txt
+
+# Authentication files (sensitive)
+*auth-token.json
+credentials.json
+oauth_creds.json
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
