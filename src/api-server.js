@@ -161,7 +161,8 @@ async function initializeConfig(args = process.argv.slice(2), configFilePath = '
             REQUEST_MAX_RETRIES: 3,
             REQUEST_BASE_DELAY: 1000,
             CRON_NEAR_MINUTES: 15,
-            CRON_REFRESH_TOKEN: true
+            CRON_REFRESH_TOKEN: true,
+            DEMO_MODE: false
         };
         console.log('[Config] Using default configuration.');
     }
@@ -312,6 +313,13 @@ async function initializeConfig(args = process.argv.slice(2), configFilePath = '
                 i++;
             } else {
                 console.warn(`[Config Warning] --cron-refresh-token flag requires a value.`);
+            }
+        } else if (args[i] === '--demo-mode') {
+            if (i + 1 < args.length) {
+                currentConfig.DEMO_MODE = args[i + 1].toLowerCase() === 'true';
+                i++;
+            } else {
+                console.warn(`[Config Warning] --demo-mode flag requires a value.`);
             }
         }
     }

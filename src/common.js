@@ -23,6 +23,7 @@ export const MODEL_PROVIDER = {
     OPENAI_CUSTOM: 'openai-custom',
     CLAUDE_CUSTOM: 'claude-custom',
     KIRO_API: 'claude-kiro-oauth',
+    GEMINI_CLAUDE_PROXY: 'gemini-claude-proxy',
 }
 
 /**

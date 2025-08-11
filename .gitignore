@@ -7,6 +7,8 @@ CLAUDE.md
 # Service runtime files
 claude-kiro-service.log
 claude-kiro-service.pid
+gemini-claude-proxy.log
+gemini-claude-proxy.pid
 *.log
 *.pid
 

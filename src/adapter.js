@@ -2,6 +2,7 @@ import { GeminiApiService } from './gemini/gemini-core.js'; // 导入geminiApiSe
 import { OpenAIApiService } from './openai/openai-core.js'; // 导入OpenAIApiService
 import { ClaudeApiService } from './claude/claude-core.js'; // 导入ClaudeApiService
 import { KiroApiService } from './claude/claude-kiro.js'; // 导入KiroApiService
+import { GeminiToClaudeAdapter } from './gemini/gemini-to-claude-adapter.js'; // 导入GeminiToClaudeAdapter
 import { MODEL_PROVIDER } from './common.js'; // 导入 MODEL_PROVIDER
 
 // 定义AI服务适配器接口
@@ -188,6 +189,34 @@ export class KiroApiServiceAdapter extends ApiServiceAdapter {
     }
 }
 
+// Gemini to Claude Proxy 适配器
+export class GeminiToClaudeProxyAdapter extends ApiServiceAdapter {
+    constructor(config) {
+        super();
+        this.geminiToClaudeAdapter = new GeminiToClaudeAdapter(config);
+    }
+
+    async generateContent(model, requestBody) {
+        // The adapter expects the requestBody to be in Claude format
+        return this.geminiToClaudeAdapter.generateContent(model, requestBody);
+    }
+
+    async *generateContentStream(model, requestBody) {
+        // The adapter expects the requestBody to be in Claude format
+        const stream = this.geminiToClaudeAdapter.generateContentStream(model, requestBody);
+        yield* stream;
+    }
+
+    async listModels() {
+        // The adapter returns Gemini models in Claude format
+        return this.geminiToClaudeAdapter.listModels();
+    }
+
+    async refreshToken() {
+        return this.geminiToClaudeAdapter.refreshToken();
+    }
+}
+
 // 用于存储服务适配器单例的映射
 export const serviceInstances = {};
 
@@ -207,6 +236,9 @@ export function getServiceAdapter(config) {
                 break;
             case MODEL_PROVIDER.KIRO_API:
                 serviceInstances[provider] = new KiroApiServiceAdapter(config);
+                break;
+            case MODEL_PROVIDER.GEMINI_CLAUDE_PROXY:
+                serviceInstances[provider] = new GeminiToClaudeProxyAdapter(config);
                 break;
             default:
                 throw new Error(`Unsupported model provider: ${provider}`);
