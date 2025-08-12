@@ -1,0 +1,81 @@
+{
+  "providers": {
+    "gemini-claude": {
+      "name": "Gemini via Claude API",
+      "model_provider": "gemini-cli-oauth",
+      "oauth_file": "~/.gemini/oauth_creds.json",
+      "port": 3000,
+      "description": "通过Claude API格式访问Gemini模型",
+      "supported_endpoints": [
+        "/v1/messages",
+        "/v1/models"
+      ],
+      "features": [
+        "Claude API兼容格式",
+        "Gemini CLI OAuth免费额度",
+        "支持gemini-2.5-pro和gemini-2.5-flash模型"
+      ]
+    },
+    "claude-kiro": {
+      "name": "Claude via Kiro OAuth",
+      "model_provider": "claude-kiro-oauth",
+      "oauth_file": "~/.aws/sso/cache/kiro-auth-token.json",
+      "port": 3001,
+      "description": "通过Kiro OAuth访问Claude模型",
+      "supported_endpoints": [
+        "/v1/chat/completions",
+        "/v1/models"
+      ],
+      "features": [
+        "免费使用Claude Sonnet 4模型",
+        "OpenAI API兼容格式",
+        "Kiro OAuth认证"
+      ]
+    },
+    "openai-custom": {
+      "name": "OpenAI Custom",
+      "model_provider": "openai-custom",
+      "port": 3002,
+      "api_key_required": true,
+      "description": "使用自定义OpenAI API密钥",
+      "supported_endpoints": [
+        "/v1/chat/completions",
+        "/v1/models"
+      ],
+      "features": [
+        "官方OpenAI API",
+        "需要API密钥",
+        "支持所有OpenAI模型"
+      ]
+    },
+    "claude-custom": {
+      "name": "Claude Custom",
+      "model_provider": "claude-custom",
+      "port": 3003,
+      "api_key_required": true,
+      "description": "使用自定义Claude API密钥",
+      "supported_endpoints": [
+        "/v1/messages",
+        "/v1/models"
+      ],
+      "features": [
+        "官方Claude API",
+        "需要API密钥",
+        "支持所有Claude模型"
+      ]
+    }
+  },
+  "default_mode": "all",
+  "server": {
+    "host": "0.0.0.0",
+    "base_port": 3000,
+    "api_key": "123456",
+    "log_mode": "console"
+  },
+  "advanced": {
+    "system_prompt_file": "./input_system_prompt.txt",
+    "system_prompt_mode": "overwrite",
+    "cron_near_minutes": 15,
+    "cron_refresh_token": true
+  }
+}

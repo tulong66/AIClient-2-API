@@ -1,5 +1,4 @@
 import { GeminiApiService } from './gemini-core.js';
-import { GeminiDemoAdapter } from './gemini-demo-adapter.js';
 import { toGeminiRequestFromClaude, toClaudeChatCompletionFromGemini } from '../convert.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -17,25 +16,20 @@ import { v4 as uuidv4 } from 'uuid';
 export class GeminiToClaudeAdapter {
     constructor(config) {
         this.config = config;
-        this.demoMode = config.DEMO_MODE || false;
 
-        if (this.demoMode) {
-            console.log("[Gemini-Claude Proxy] Running in DEMO MODE - no authentication required");
-            this.geminiApiService = new GeminiDemoAdapter(config);
-            this.isInitialized = true;
-        } else {
-            this.geminiApiService = new GeminiApiService(config);
-            this.isInitialized = false;
+        // 修改配置，使用正确的Gemini CLI OAuth文件路径
+        const geminiOAuthPath = config.GEMINI_OAUTH_CREDS_FILE_PATH ||
+            require('path').join(require('os').homedir(), '.gemini', 'oauth_creds.json');
 
-            // Initialize Gemini service
-            this.geminiApiService.initialize().catch(error => {
-                console.error("[Gemini-Claude Proxy] Failed to initialize Gemini service:", error);
-                console.log("[Gemini-Claude Proxy] Falling back to demo mode...");
-                this.demoMode = true;
-                this.geminiApiService = new GeminiDemoAdapter(config);
-                this.isInitialized = true;
-            });
-        }
+        console.log(`[Gemini-Claude Proxy] Using OAuth credentials file: ${geminiOAuthPath}`);
+
+        const geminiConfig = {
+            ...config,
+            GEMINI_OAUTH_CREDS_FILE_PATH: geminiOAuthPath
+        };
+
+        this.geminiApiService = new GeminiApiService(geminiConfig);
+        this.isInitialized = false;
     }
 
     /**
@@ -59,23 +53,21 @@ export class GeminiToClaudeAdapter {
         
         try {
             console.log(`[Gemini-Claude Proxy] Processing Claude format request for model: ${model}`);
+            console.log(`[Gemini-Claude Proxy] Original Claude request:`, JSON.stringify(claudeRequestBody, null, 2));
 
-            if (this.demoMode) {
-                // Demo mode: direct call to demo adapter
-                return await this.geminiApiService.generateContent(model, claudeRequestBody);
-            } else {
-                // Real mode: convert formats
-                const geminiRequest = toGeminiRequestFromClaude(claudeRequestBody);
-                console.log(`[Gemini-Claude Proxy] Converted to Gemini format`);
+            // Convert Claude request to Gemini format
+            const geminiRequest = toGeminiRequestFromClaude(claudeRequestBody);
+            console.log(`[Gemini-Claude Proxy] Converted to Gemini format:`, JSON.stringify(geminiRequest, null, 2));
 
-                const geminiResponse = await this.geminiApiService.generateContent(model, geminiRequest);
-                console.log(`[Gemini-Claude Proxy] Received Gemini response`);
+            // Call Gemini API
+            const geminiResponse = await this.geminiApiService.generateContent(model, geminiRequest);
+            console.log(`[Gemini-Claude Proxy] Received Gemini response`);
 
-                const claudeResponse = toClaudeChatCompletionFromGemini(geminiResponse, model);
-                console.log(`[Gemini-Claude Proxy] Converted to Claude format`);
+            // Convert Gemini response to Claude format
+            const claudeResponse = toClaudeChatCompletionFromGemini(geminiResponse, model);
+            console.log(`[Gemini-Claude Proxy] Converted to Claude format`);
 
-                return claudeResponse;
-            }
+            return claudeResponse;
         } catch (error) {
             console.error(`[Gemini-Claude Proxy] Error in generateContent:`, error);
             
@@ -96,14 +88,7 @@ export class GeminiToClaudeAdapter {
         try {
             console.log(`[Gemini-Claude Proxy] Processing streaming Claude format request for model: ${model}`);
 
-            if (this.demoMode) {
-                // Demo mode: direct call to demo adapter
-                const stream = this.geminiApiService.generateContentStream(model, claudeRequestBody);
-                yield* stream;
-                return;
-            }
-
-            // Real mode: convert formats
+            // Convert Claude request to Gemini format
             const geminiRequest = toGeminiRequestFromClaude(claudeRequestBody);
             geminiRequest.stream = true; // Ensure streaming is enabled
 
@@ -160,8 +145,6 @@ export class GeminiToClaudeAdapter {
             // Get Gemini models
             const geminiModels = await this.geminiApiService.listModels();
 
-            // Both demo and real mode: return Gemini format
-            // The conversion will be handled by the common.js convertData function
             console.log(`[Gemini-Claude Proxy] Listed ${geminiModels.models.length} models in Gemini format`);
             return geminiModels;
         } catch (error) {
